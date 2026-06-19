@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#12342d">
+  <title>斗地主计分板</title>
+  <style>
+    :root{--ink:#18352f;--muted:#74827e;--paper:#fbfaf5;--line:#e6e2d8;--green:#1f6a55;--green2:#dcebe3;--red:#c83b37;--gold:#eba93b;--shadow:0 18px 50px rgba(23,53,47,.14)}
+    *{box-sizing:border-box} html,body{margin:0;min-height:100%;font-family:ui-rounded,"SF Pro Rounded","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:#e8eee9}
+    body{min-height:100dvh;background:radial-gradient(circle at 100% 0,#f6d58f55,transparent 34%),linear-gradient(145deg,#e9f2ed,#e4e8e2)}
+    button,input{font:inherit}.app{min-height:100dvh;max-width:760px;margin:auto;background:var(--paper);position:relative;overflow:hidden;box-shadow:var(--shadow)}
+    .setup{min-height:100dvh;padding:calc(30px + env(safe-area-inset-top)) 22px 30px;display:flex;flex-direction:column}
+    .brand{display:flex;align-items:center;gap:12px;margin-bottom:44px}.mark{width:48px;height:48px;border-radius:16px;background:var(--ink);display:grid;place-items:center;color:#fff;font-size:24px;box-shadow:0 10px 25px #17362f36}.brand b{font-size:18px}.brand small{display:block;color:var(--muted);margin-top:3px}
+    .eyebrow{color:var(--green);font-weight:800;font-size:13px;letter-spacing:.1em}.setup h1{font-size:clamp(29px,8vw,44px);line-height:1.12;margin:10px 0 12px;letter-spacing:-.04em}.hint{color:var(--muted);line-height:1.7;margin:0 0 26px}
+    .count-picker{display:grid;grid-template-columns:1fr 1fr;gap:12px}.count-btn{border:1.5px solid var(--line);background:#fff;border-radius:20px;padding:21px 10px;color:var(--ink);font-weight:800;font-size:18px;cursor:pointer}.count-btn span{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:5px}.count-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);transform:translateY(-2px);box-shadow:0 12px 28px #17362f2d}.count-btn.active span{color:#bed1c9}
+    .name-stage{display:none}.name-stage.show{display:block}.name-progress{display:flex;gap:7px;margin:4px 0 24px}.name-progress i{height:5px;flex:1;border-radius:9px;background:var(--line)}.name-progress i.done{background:var(--gold)}
+    .name-input{width:100%;border:0;border-bottom:2px solid var(--ink);background:transparent;padding:13px 2px;font-size:28px;font-weight:800;color:var(--ink);outline:none;border-radius:0}.name-input::placeholder{color:#b1b8b5}.name-input:focus{border-color:var(--green)}
+    .primary{margin-top:auto;width:100%;border:0;border-radius:18px;background:var(--green);color:#fff;padding:17px;font-weight:800;cursor:pointer;box-shadow:0 12px 24px #1f6a5535}.primary:disabled{opacity:.45;box-shadow:none}.back-link{border:0;background:transparent;color:var(--muted);padding:16px;cursor:pointer}
+    .score-screen{display:none;height:100dvh;flex-direction:column;background:var(--paper)}.score-screen.show{display:flex}.score-top{padding:calc(16px + env(safe-area-inset-top)) 16px 12px;display:flex;align-items:center;justify-content:space-between;background:var(--ink);color:#fff}.score-top h1{font-size:20px;margin:0}.score-top p{font-size:11px;margin:3px 0 0;color:#bcd0c8}.icon-btn{border:1px solid #ffffff30;color:#fff;background:#ffffff12;border-radius:12px;padding:8px 11px;cursor:pointer}
+    .board-wrap{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 10px}.table-scroll{overflow:auto;overscroll-behavior:contain;scrollbar-color:#bccbc4 transparent;flex:1;min-height:0;padding-bottom:10px}
+    .score-grid{display:grid;min-width:540px;align-items:stretch}.score-grid>*{border-bottom:1px solid var(--line)}
+    .head{position:sticky;top:0;z-index:4;background:#eef3ef;padding:13px 7px 11px;font-size:13px;text-align:center;font-weight:800;box-shadow:0 1px 0 var(--line)}.round-head{left:0;z-index:5}.round-no{position:sticky;left:0;z-index:2;background:var(--paper);display:grid;place-items:center;color:var(--muted);font-size:12px;font-weight:800}
+    .score-cell{display:flex;align-items:center;padding:5px 6px;gap:4px;min-height:48px;background:#fff}.sign{flex:0 0 33px;height:34px;border:0;border-radius:10px;background:var(--green2);color:var(--green);font-size:20px;font-weight:900;cursor:pointer}.sign.minus{background:#f8dfdd;color:var(--red)}.score-input{width:0;min-width:0;flex:1;border:0;background:transparent;text-align:center;font-size:18px;font-weight:800;color:var(--ink);outline:none;padding:6px 0}.score-input:focus{background:#f5f7f3;border-radius:8px;box-shadow:inset 0 0 0 2px #6ba38f}.score-input::placeholder{color:#c5cbc8;font-weight:500}
+    .row-alert{grid-column:1/-1;background:#fff0ee;color:var(--red);font-size:12px;font-weight:700;padding:5px 12px 6px;text-align:center;border-bottom:1px solid #f2cac6!important;display:none}.row-alert.show{display:block}
+    .stats{flex:0 0 auto;background:#fff;border-top:1px solid var(--line);padding:11px 10px calc(11px + env(safe-area-inset-bottom));box-shadow:0 -8px 25px #243d3520}.stats-title{display:flex;justify-content:space-between;align-items:center;margin:0 4px 8px;font-size:11px;color:var(--muted)}.stats-grid{display:grid;gap:6px}.stat-card{min-width:0;background:#f2f5f1;border-radius:13px;padding:8px 5px;text-align:center}.stat-card b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}.stat-card strong{font-size:20px;display:block;margin:2px 0;color:var(--green)}.stat-card strong.neg{color:var(--red)}.stat-card small{font-size:10px;color:var(--muted)}
+    .toast{position:fixed;left:50%;bottom:120px;transform:translate(-50%,15px);background:#172d28;color:#fff;border-radius:11px;padding:10px 16px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:20}.toast.show{opacity:1;transform:translate(-50%,0)}
+    @media(min-width:760px){.app{min-height:92dvh;height:92dvh;margin:4dvh auto;border-radius:28px}.setup,.score-screen{min-height:0;height:100%}}
+    @media(max-width:560px){.score-grid{min-width:100%}.head{font-size:11px;padding-inline:2px}.score-cell{padding-inline:3px}.sign{flex-basis:29px}.score-input{font-size:16px}.round-no{font-size:11px}}
+  </style>
+</head>
+<body>
+<main class="app">
+  <section class="setup" id="setup">
+    <div class="brand"><div class="mark">♠</div><div><b>欢乐牌局</b><small>斗地主计分工具</small></div></div>
+    <div id="countStage">
+      <div class="eyebrow">第一步</div><h1>今天几个人<br>一起上桌？</h1><p class="hint">选择玩家人数，下一步依次输入大家的名字。</p>
+      <div class="count-picker"><button class="count-btn" data-count="3">3 人<span>经典斗地主</span></button><button class="count-btn" data-count="4">4 人<span>四人牌局</span></button></div>
+    </div>
+    <div class="name-stage" id="nameStage">
+      <div class="eyebrow">玩家资料</div><h1 id="nameTitle">第一位玩家<br>怎么称呼？</h1><p class="hint" id="nameHint">输入后按回车，继续下一位。</p><div class="name-progress" id="nameProgress"></div>
+      <input class="name-input" id="nameInput" maxlength="10" autocomplete="off" placeholder="输入姓名">
+    </div>
+    <button class="primary" id="nextBtn" disabled>下一步</button><button class="back-link" id="backBtn" hidden>返回选择人数</button>
+  </section>
+
+  <section class="score-screen" id="scoreScreen">
+    <header class="score-top"><div><h1>斗地主计分板</h1><p>点击 + / − 切换正负 · 回车跳至下一格</p></div><button class="icon-btn" id="resetBtn">新牌局</button></header>
+    <div class="board-wrap"><div class="table-scroll" id="tableScroll"><div class="score-grid" id="scoreGrid"></div></div></div>
+    <footer class="stats"><div class="stats-title"><span>实时战绩</span><span id="roundStatus">0 局已完成</span></div><div class="stats-grid" id="statsGrid"></div></footer>
+  </section>
+  <div class="toast" id="toast"></div>
+</main>
+<script>
+(()=>{
+  const $=s=>document.querySelector(s), els={setup:$('#setup'),countStage:$('#countStage'),nameStage:$('#nameStage'),nameTitle:$('#nameTitle'),nameHint:$('#nameHint'),nameProgress:$('#nameProgress'),nameInput:$('#nameInput'),nextBtn:$('#nextBtn'),backBtn:$('#backBtn'),scoreScreen:$('#scoreScreen'),scoreGrid:$('#scoreGrid'),statsGrid:$('#statsGrid'),roundStatus:$('#roundStatus'),tableScroll:$('#tableScroll'),toast:$('#toast')};
+  let playerCount=0,names=[],nameIndex=0,rounds=[]; const INITIAL_ROUNDS=12;
+  document.querySelectorAll('.count-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.count-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');playerCount=+b.dataset.count;els.nextBtn.disabled=false});
+  els.nameInput.oninput=()=>els.nextBtn.disabled=!els.nameInput.value.trim(); els.nameInput.onkeydown=e=>{if(e.key==='Enter'&&!els.nextBtn.disabled) els.nextBtn.click()};
+  els.nextBtn.onclick=()=>{if(!els.nameStage.classList.contains('show')){els.countStage.style.display='none';els.nameStage.classList.add('show');els.backBtn.hidden=false;els.nextBtn.disabled=true;renderNameStep();setTimeout(()=>els.nameInput.focus(),50);return} const n=els.nameInput.value.trim();if(!n)return;names.push(n);nameIndex++;els.nameInput.value='';els.nextBtn.disabled=true;if(nameIndex===playerCount){startGame()}else{renderNameStep();els.nameInput.focus()}};
+  els.backBtn.onclick=()=>{if(nameIndex>0){nameIndex--;els.nameInput.value=names.pop();els.nextBtn.disabled=false;renderNameStep();els.nameInput.focus()}else{els.nameStage.classList.remove('show');els.countStage.style.display='block';els.backBtn.hidden=true;els.nextBtn.disabled=false}};
+  function renderNameStep(){const words=['第一','第二','第三','第四'];els.nameTitle.innerHTML=`${words[nameIndex]}位玩家<br>怎么称呼？`;els.nameHint.textContent=`还需录入 ${playerCount-nameIndex} 位玩家`;els.nameProgress.innerHTML=Array.from({length:playerCount},(_,i)=>`<i class="${i<nameIndex?'done':''}"></i>`).join('')}
+  function blankRound(){return Array.from({length:playerCount},()=>({sign:1,value:''}))}
+  function startGame(){rounds=Array.from({length:INITIAL_ROUNDS},blankRound);els.setup.style.display='none';els.scoreScreen.classList.add('show');renderBoard();updateStats();setTimeout(()=>document.querySelector('.score-input')?.focus(),60)}
+  function renderBoard(){els.scoreGrid.style.gridTemplateColumns=`44px repeat(${playerCount},minmax(0,1fr))`;els.scoreGrid.innerHTML=`<div class="head round-head">局</div>${names.map(n=>`<div class="head">${escapeHtml(n)}</div>`).join('')}`;rounds.forEach((r,ri)=>appendRound(r,ri))}
+  function appendRound(round,ri){const no=document.createElement('div');no.className='round-no';no.textContent=ri+1;els.scoreGrid.append(no);round.forEach((score,pi)=>{const cell=document.createElement('div');cell.className='score-cell';cell.innerHTML=`<button class="sign${score.sign<0?' minus':''}" aria-label="切换正负" data-r="${ri}" data-p="${pi}">${score.sign<0?'−':'+'}</button><input class="score-input" data-r="${ri}" data-p="${pi}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="${score.value}">`;els.scoreGrid.append(cell)});const alert=document.createElement('div');alert.className='row-alert';alert.id=`alert-${ri}`;alert.textContent='本局得分总和不为 0，请检查';els.scoreGrid.append(alert)}
+  els.scoreGrid.addEventListener('click',e=>{const b=e.target.closest('.sign');if(!b)return;const r=+b.dataset.r,p=+b.dataset.p;rounds[r][p].sign*=-1;b.classList.toggle('minus');b.textContent=rounds[r][p].sign<0?'−':'+';b.nextElementSibling.focus();validateRound(r);updateStats()});
+  els.scoreGrid.addEventListener('input',e=>{if(!e.target.classList.contains('score-input'))return;e.target.value=e.target.value.replace(/\D/g,'');const r=+e.target.dataset.r,p=+e.target.dataset.p;rounds[r][p].value=e.target.value;validateRound(r);updateStats();if(r===rounds.length-1&&rounds[r].some(x=>x.value!==''))addRound()});
+  els.scoreGrid.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.classList.contains('score-input'))return;e.preventDefault();const all=[...document.querySelectorAll('.score-input')],i=all.indexOf(e.target);all[i+1]?.focus();all[i+1]?.select()});
+  function addRound(){const r=blankRound(),ri=rounds.length;rounds.push(r);appendRound(r,ri)}
+  function validateRound(ri){const r=rounds[ri],complete=r.every(x=>x.value!=='');const total=r.reduce((s,x)=>s+x.sign*(+x.value||0),0);document.getElementById(`alert-${ri}`)?.classList.toggle('show',complete&&total!==0);return complete&&total===0}
+  function updateStats(){let completed=0;const totals=names.map(()=>0),wins=names.map(()=>0);rounds.forEach(r=>{const valid=r.every(x=>x.value!=='')&&r.reduce((s,x)=>s+x.sign*(+x.value||0),0)===0;if(!valid)return;completed++;r.forEach((x,i)=>{const n=x.sign*(+x.value||0);totals[i]+=n;if(n>0)wins[i]++})});els.roundStatus.textContent=`${completed} 局已完成`;els.statsGrid.style.gridTemplateColumns=`repeat(${playerCount},1fr)`;els.statsGrid.innerHTML=names.map((n,i)=>`<div class="stat-card"><b>${escapeHtml(n)}</b><strong class="${totals[i]<0?'neg':''}">${totals[i]>0?'+':''}${totals[i]}</strong><small>胜 ${wins[i]} 局</small></div>`).join('')}
+  $('#resetBtn').onclick=()=>{if(!confirm('确定结束当前牌局并重新开始吗？'))return;location.reload()};
+  function escapeHtml(s){return s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+})();
+</script>
+</body>
+</html>
